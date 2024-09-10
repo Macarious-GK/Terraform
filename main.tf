@@ -1,30 +1,83 @@
-provider "aws" { 
- region = "us-east-2" 
+# provider "aws" { 
+#  region = "us-east-2" 
+# }
+# module "vpc" {
+#   source = "terraform-aws-modules/vpc/aws"
+
+#   name = "Macarious-Team2-VPC"
+#   cidr = "10.0.0.0/16"
+
+#   azs             = ["us-east-2a", "us-east-2b"]
+#   private_subnets = ["10.0.2.0/24", "10.0.4.0/24"]
+#   public_subnets  = ["10.0.1.0/24", "10.0.3.0/24"]
+
+#   enable_nat_gateway = false
+#   single_nat_gateway  = false
+#   one_nat_gateway_per_az = false
+#   enable_vpn_gateway = false
+
+#   public_subnet_tags = {
+#     "map_public_ip_on_launch" = true
+#   }
+
+#   tags = {
+#     Terraform = "true"
+#     Environment = "dev"
+#   }
+# }
+
+# main.tf
+
+provider "aws" {
+  region = "us-east-2"
 }
-module "vpc" {
-  source = "terraform-aws-modules/vpc/aws"
 
-  name = "Macarious-Team2-VPC"
-  cidr = "10.0.0.0/16"
+resource "aws_vpc" "main_vpc" {
+  cidr_block       = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
 
-  azs             = ["us-east-2a", "us-east-2b"]
-  private_subnets = ["10.0.2.0/24", "10.0.4.0/24"]
-  public_subnets  = ["10.0.1.0/24", "10.0.3.0/24"]
+  tags = {
+    Name = "MainVPC"
+  }
+}
 
-  enable_nat_gateway = false
-  single_nat_gateway  = false
-  one_nat_gateway_per_az = false
-  enable_vpn_gateway = false
+resource "aws_internet_gateway" "main_gw" {
+  vpc_id = aws_vpc.main_vpc.id
 
-  public_subnet_tags = {
-    "map_public_ip_on_launch" = true
+  tags = {
+    Name = "MainInternetGateway"
+  }
+}
+
+resource "aws_subnet" "public_subnet" {
+  vpc_id     = aws_vpc.main_vpc.id
+  cidr_block = "10.0.1.0/24"
+  availability_zone = "us-east-2a"
+
+  tags = {
+    Name = "PublicSubnet"
+  }
+}
+
+resource "aws_route_table" "public_route_table" {
+  vpc_id = aws_vpc.main_vpc.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.main_gw.id
   }
 
   tags = {
-    Terraform = "true"
-    Environment = "dev"
+    Name = "PublicRouteTable"
   }
 }
+
+resource "aws_route_table_association" "public_route_table_association" {
+  subnet_id      = aws_subnet.public_subnet.id
+  route_table_id = aws_route_table.public_route_table.id
+}
+
 
 # module "eks" {
 #   source  = "terraform-aws-modules/eks/aws"
