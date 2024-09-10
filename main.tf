@@ -11,8 +11,8 @@ module "vpc" {
   private_subnets = ["10.0.2.0/24", "10.0.4.0/24"]
   public_subnets  = ["10.0.1.0/24", "10.0.3.0/24"]
 
-  enable_nat_gateway = true
-  single_nat_gateway  = true
+  enable_nat_gateway = false
+  single_nat_gateway  = false
   one_nat_gateway_per_az = false
   enable_vpn_gateway = false
 
@@ -26,49 +26,49 @@ module "vpc" {
   }
 }
 
-module "eks" {
-  source  = "terraform-aws-modules/eks/aws"
-  version = "~> 20.0"
+# module "eks" {
+#   source  = "terraform-aws-modules/eks/aws"
+#   version = "~> 20.0"
 
-  cluster_name    = "Macarious-Cluster-Team2"
-  cluster_version = "1.30"
+#   cluster_name    = "Macarious-Cluster-Team2"
+#   cluster_version = "1.30"
 
-  cluster_endpoint_public_access  = true
+#   cluster_endpoint_public_access  = true
 
-  cluster_addons = {
-    coredns                = {}
-    eks-pod-identity-agent = {}
-    kube-proxy             = {}
-    vpc-cni                = {}
-  }
+#   cluster_addons = {
+#     coredns                = {}
+#     eks-pod-identity-agent = {}
+#     kube-proxy             = {}
+#     vpc-cni                = {}
+#   }
 
-  vpc_id                   = module.vpc.vpc_id
-  subnet_ids               = module.vpc.private_subnets
-  control_plane_subnet_ids = module.vpc.private_subnets
+#   vpc_id                   = module.vpc.vpc_id
+#   subnet_ids               = module.vpc.private_subnets
+#   control_plane_subnet_ids = module.vpc.private_subnets
 
-  eks_managed_node_group_defaults = {
-    instance_types = ["t3.large"]
-  }
+#   eks_managed_node_group_defaults = {
+#     instance_types = ["t3.large"]
+#   }
 
-  eks_managed_node_groups = {
-    Macarious-NG = {
-      ami_type       = "AL2023_x86_64_STANDARD"
-      instance_types = ["t3.large"]
+#   eks_managed_node_groups = {
+#     Macarious-NG = {
+#       ami_type       = "AL2023_x86_64_STANDARD"
+#       instance_types = ["t3.large"]
 
-      min_size     = 1
-      max_size     = 1
-      desired_size = 1
-    }
-  }
+#       min_size     = 1
+#       max_size     = 1
+#       desired_size = 1
+#     }
+#   }
 
-  enable_cluster_creator_admin_permissions = true
+#   enable_cluster_creator_admin_permissions = true
 
 
-  tags = {
-    Environment = "dev"
-    Terraform   = "true"
-  }
-}
+#   tags = {
+#     Environment = "dev"
+#     Terraform   = "true"
+#   }
+# }
 
 
 #   # Cluster access entry
