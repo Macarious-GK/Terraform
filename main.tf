@@ -38,7 +38,7 @@ resource "aws_vpc" "main_vpc" {
   enable_dns_support   = true
 
   tags = {
-    Name = "MainVPC"
+    Name = "Macarious"
   }
 }
 
