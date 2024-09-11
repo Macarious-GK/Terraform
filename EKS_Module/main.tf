@@ -93,11 +93,11 @@ resource "aws_eks_node_group" "eks_node_group" {
 }
 
 # Add-ons for EKS Cluster
-resource "aws_eks_addon" "coredns" {
-  cluster_name = aws_eks_cluster.eks_cluster.name
-  addon_name   = "coredns"
-  addon_version = "v1.11.1-eksbuild.8"
-}
+# resource "aws_eks_addon" "coredns" {
+#   cluster_name = aws_eks_cluster.eks_cluster.name
+#   addon_name   = "coredns"
+#   addon_version = "v1.11.1-eksbuild.8"
+# }
 
 resource "aws_eks_addon" "eks_pod_identity_agent" {
   cluster_name = aws_eks_cluster.eks_cluster.name
