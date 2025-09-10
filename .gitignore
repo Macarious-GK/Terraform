@@ -1,0 +1,3 @@
+/3tier_app_Project/.terraform/
+/3tier_app_Project/.terraform.lock.hcl
+**/.terraform/*

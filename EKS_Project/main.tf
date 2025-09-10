@@ -3,7 +3,7 @@ provider "aws" {
 }
 
 module "vpc" {
-  source         = "./VPC_Module"
+  source         = "./modules/VPC_Module"
   cidr_block     = "10.0.0.0/16"
   vpc_name       = "Macarious-VPC"
   public_subnets = ["10.0.1.0/24", "10.0.3.0/24"]
@@ -12,14 +12,14 @@ module "vpc" {
 }
 
 module "security_group" {
-  source  = "./SecurityGroup_Module"
+  source  = "./modules/SecurityGroup_Module"
   sg_name = "Macarious-Security-Group"
   vpc_id  = module.vpc.vpc_id
 }
 
 
 module "eks" {
-  source = "./EKS_Module"
+  source = "./modules/EKS_Module"
 
   vpc_id             = module.vpc.vpc_id
   sg_id               = module.security_group.security_group_id
