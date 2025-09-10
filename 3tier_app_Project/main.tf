@@ -1,18 +1,4 @@
-resource "tls_private_key" "my_key" {
-  algorithm = "RSA"
-  rsa_bits  = 4096
-}
 
-resource "local_file" "private_key" {
-  filename        = "${path.module}/my-generated-key.pem"
-  content         = tls_private_key.my_key.private_key_pem
-  file_permission = "0600"
-}
-
-resource "aws_key_pair" "General_Key_Pair" {
-  key_name   = "General_Key_Pair-for-ssh-access-key"
-  public_key = tls_private_key.my_key.public_key_openssh
-}
 module "VPC" {
   source                       = "./modules/VPC"
   vpc_name                     = "my-vpc"
@@ -23,7 +9,7 @@ module "VPC" {
   azs                          = ["us-east-1a", "us-east-1b"]
   public_subnets               = ["10.0.1.0/24", "10.0.2.0/24"]
   private_subnets              = ["10.0.3.0/24", "10.0.4.0/24"]
-  enable_nat_gateway           = false
+  enable_nat_gateway           = true
   enable_dns_hostnames         = true
   enable_dns_support           = true
 }
@@ -75,46 +61,59 @@ module "SG" {
   }
 }
 
-module "EC2" {
+module "KEY-Bastion" {
+  source        = "./modules/KEY"
+  key_name      = "Bastion-my-key-pair"
+  key_algorithm = "RSA"
+
+}
+module "KEY-backend" {
+  source        = "./modules/KEY"
+  key_name      = "backend-my-key-pair"
+  key_algorithm = "RSA"
+
+}
+
+module "Bastion_EC2" {
   source                      = "./modules/EC2"
-  instance_name               = "my-ec2-instance"
+  instance_name               = "bastion-my-ec2-instance"
   instance_owner              = "Macarious"
   instance_env                = "development"
   ami_id                      = "ami-0360c520857e3138f"
   instance_type               = "t3.micro"
   associate_public_ip_address = true
   sg_ids                      = [module.SG.sg_id]
-  ec2_aws_key_pair            = aws_key_pair.General_Key_Pair.key_name
+  ec2_aws_key_pair            = module.KEY-Bastion.key_name
   desired_vpc_subnet_id       = module.VPC.public_subnets_ids[0]
   user_data                   = <<-EOF
     #!/bin/bash
-    sudo apt update
-    sudo apt install nginx -y
-    systemctl enable nginx
-    systemctl start nginx
+    sudo apt update -y
   EOF
-
 }
 
-module "ALB" {
-  source                 = "./modules/ELB"
-  lb_name                = "my-alb"
-  TG_name                = "my-target-group"
-  lb_owner               = "Macarious"
-  lb_env                 = "dev"
-  vpc_id                 = module.VPC.vpc_id
-  lb_sg_id               = module.SG.sg_id
-  vpc_azs                = module.VPC.vpc_azs
-  vpc_public_subnets_ids = module.VPC.public_subnets_ids[*]
-  asg_instance           = module.EC2.ec2_instance_id
+module "Backend_EC2" {
+  source                      = "./modules/EC2"
+  instance_name               = "backend-my-ec2-instance"
+  instance_owner              = "Macarious"
+  instance_env                = "development"
+  ami_id                      = "ami-0360c520857e3138f"
+  instance_type               = "t3.micro"
+  associate_public_ip_address = false
+  sg_ids                      = [module.SG.sg_id]
+  ec2_aws_key_pair            = module.KEY-backend.key_name
+  desired_vpc_subnet_id       = module.VPC.private_subnets_ids[0]
+  user_data                   = <<-EOF
+    #!/bin/bash
+    sudo apt update -y
+  EOF
 }
 
 module "RDS" {
   source                 = "./modules/RDS"
   identifier_name        = "my-rds-instance"
-  db_name                = "mydb"
-  db_username            = "macariousadmin"
-  db_password            = "YourSecurePassword123!"
+  db_name                = var.db_name
+  db_username            = var.db_username
+  db_password            = var.db_password
   db_port                = 5432
   subnet_ids             = module.VPC.public_subnets_ids
   vpc_security_group_ids = [module.SG.sg_id]
@@ -133,6 +132,17 @@ module "RDS" {
     work_mem      = "65536"
     log_statement = "all"
   }
-
-
 }
+
+# module "ALB" {
+#   source                 = "./modules/ELB"
+#   lb_name                = "my-alb"
+#   TG_name                = "my-target-group"
+#   lb_owner               = "Macarious"
+#   lb_env                 = "dev"
+#   vpc_id                 = module.VPC.vpc_id
+#   lb_sg_id               = module.SG.sg_id
+#   vpc_azs                = module.VPC.vpc_azs
+#   vpc_public_subnets_ids = module.VPC.public_subnets_ids[*]
+#   asg_instance           = module.EC2.ec2_instance_id
+# }
