@@ -16,6 +16,12 @@ variable "lb_env" {
   default     = "development"
 }
 
+variable "lb_type" {
+  description = "The type of the Load Balancer"
+  type        = string
+  default     = "application"
+}
+
 variable "vpc_id" {
   description = "The VPC ID where the Loadbalancer will be created"
   type        = string
@@ -38,14 +44,20 @@ variable "vpc_azs" {
 
 }
 
-variable "vpc_public_subnets_ids" {
+variable "vpc_subnets_ids" {
   description = "this is the list of vpc subnets ids"
   type        = list(string)
 
 }
 
-variable "asg_instance" {
-  description = "This is the instance that will be the template for the asg"
-  type = string
-  
+# Listener variables
+variable "lb_listener_port" {
+  description = "The port on which the load balancer is listening"
+  type        = number
+  default     = 80
+}
+variable "lb_listener_protocol" {
+  description = "The protocol for the listener"
+  type        = string
+  default     = "HTTP"
 }
