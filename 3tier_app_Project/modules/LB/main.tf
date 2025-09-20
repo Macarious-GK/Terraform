@@ -38,3 +38,9 @@ resource "aws_lb_listener" "General_Purpose_LB_listener" {
     target_group_arn = aws_lb_target_group.ALB_Target_Group.arn
   }
 }
+
+resource "aws_lb_target_group_attachment" "lb_target_group_attachment" {
+  count            = var.enable_attachment ? 1 : 0
+  target_group_arn = aws_lb_target_group.ALB_Target_Group.arn
+  target_id        = var.lb_tg_target_id
+}

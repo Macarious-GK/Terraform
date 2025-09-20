@@ -1,4 +1,4 @@
-output "lb_dns_name" {
+output "dns_name" {
   value = aws_lb.General_Purpose_LB.dns_name
 
 }

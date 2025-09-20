@@ -61,3 +61,16 @@ variable "lb_listener_protocol" {
   type        = string
   default     = "HTTP"
 }
+
+variable "enable_attachment" {
+  description = "Whether to enable attaching targets to the Load Balancer target group"
+  type        = bool
+  default     = false
+  
+}
+
+variable "lb_tg_target_id" {
+  description = "The ID of the target to attach to the target group (e.g., instance ID)"
+  type        = string
+  default = null
+}

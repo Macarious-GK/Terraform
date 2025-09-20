@@ -22,6 +22,14 @@
 # 1. Target tracking scaling
 # 2. Step scaling (for more controlled scaling)
 
+locals{
+  user_data_content = var.launch_template_object.use_user_data ? templatefile("${path.root}/scripts/${var.launch_template_object.user_data_file_name}.tpl", var.launch_template_object.user_data_vars) : file("${path.root}/scripts/${var.launch_template_object.user_data_file_name}")
+
+}
+
+locals {
+  user_data_base64 = base64encode(local.user_data_content)
+}
 
 resource "aws_ami_from_instance" "custom" {
   count          = var.enable_ami_from_instance ? 1 : 0
@@ -30,15 +38,15 @@ resource "aws_ami_from_instance" "custom" {
 }
 
 resource "aws_launch_template" "General_Purpose_LT_for_ASG" {
-  name_prefix   = var.launch_template_name_prefix
-  image_id      = var.enable_ami_from_instance ? try(aws_ami_from_instance.custom[0].id, var.launch_template_ami_id) : var.launch_template_ami_id
-  instance_type = var.launch_template_instance_type
+  name_prefix   = var.launch_template_object.name_prefix
+  image_id      = var.enable_ami_from_instance ? try(aws_ami_from_instance.custom[0].id, var.launch_template_object.ami_id) : var.launch_template_object.ami_id
+  instance_type = var.launch_template_object.instance_type
   network_interfaces {
-    associate_public_ip_address = var.launch_template_associate_public_ip
-    security_groups             = var.launch_template_associate_sg_ids
+    associate_public_ip_address = var.launch_template_object.associate_public_ip
+    security_groups             = var.launch_template_object.security_group_ids
   }
-  key_name = var.launch_template_key_name
-  user_data = filebase64("${path.module}/../files/user_data.sh")
+  key_name = var.launch_template_object.key_name
+  user_data = local.user_data_base64
 }
 
 resource "aws_autoscaling_group" "General_Purpose_ASG" {
@@ -66,12 +74,6 @@ resource "aws_autoscaling_group" "General_Purpose_ASG" {
     propagate_at_launch = true
   }
 } 
-
-# resource "aws_autoscaling_attachment" "asg_lb" {
-#   count                  = var.enable_lb ? 1 : 0
-#   autoscaling_group_name = aws_autoscaling_group.General_Purpose_ASG.name
-#   lb_target_group_arn = try(var.lb_target_group_arn, null)
-# }
 
 
 resource "aws_autoscaling_policy" "cpu_target_tracking" {

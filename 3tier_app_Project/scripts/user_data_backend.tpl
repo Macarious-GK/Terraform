@@ -5,4 +5,4 @@ systemctl enable nginx
 systemctl start nginx
 
 # Replace the Nginx default index page with hostname info
-echo "<h1>Hello from $(hostname)</h1>" > /var/www/html/index.html
+echo "<h1> ${app_name} backend from $(hostname)</h1>" > /var/www/html/index.html
