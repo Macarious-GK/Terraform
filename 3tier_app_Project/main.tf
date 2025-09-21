@@ -5,19 +5,21 @@ locals {
   }
 }
 
+
 module "VPC" {
-  source                       = "github.com/Macarious-GK/Terraform/3tier_app_Project/modules/VPC"
-  vpc_name                     = "my-vpc"
-  vpc_owner                    = local.common_tags["Owner"]
-  vpc_env                      = local.common_tags["Env"]
-  vpc_cidr                     = "10.0.0.0/16"
-  number_of_availability_zones = 2
-  azs                          = ["us-east-1a", "us-east-1b"]
-  public_subnets               = ["10.0.1.0/24", "10.0.2.0/24"]
-  private_subnets              = ["10.0.3.0/24", "10.0.4.0/24"]
-  enable_nat_gateway           = false
-  enable_dns_hostnames         = true
-  enable_dns_support           = true
+  source               = "./modules/VPC_v2"
+  name                 = "my-vpc-2"
+  cidr                 = "10.0.0.0/16"
+  azs                  = ["us-east-1a", "us-east-1b"]
+  public_subnets       = ["10.0.5.0/24", "10.0.6.0/24"]
+  private_subnets      = ["10.0.3.0/24", "10.0.4.0/24", "10.0.1.0/24", "10.0.2.0/24"]
+  nat_gateway          = "single"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+  tags = {
+    Owner       = "Macarious"
+    Environment = "development"
+  }
 }
 
 module "SG" {
@@ -27,7 +29,7 @@ module "SG" {
   sg_owner       = local.common_tags["Owner"]
   sg_env         = local.common_tags["Env"]
   vpc_id         = module.VPC.vpc_id
-  vpc_name       = module.VPC.vpc_name
+  vpc_name       = module.VPC.vpc_arn
   sg_ingress_rules = {
     http = {
       from_port   = 80
@@ -102,34 +104,34 @@ module "Backend_EC2" {
 }
 
 module "LB_internal_backend" {
-  source                 = "./modules/LB"
-  lb_name                = "my-lb-internal-backend"
-  TG_name                = "my-target-group-internal"
-  lb_owner               = "Macarious"
-  lb_env                 = "dev"
-  vpc_id                 = module.VPC.vpc_id
-  lb_sg_id               = module.SG.sg_id
-  vpc_azs                = module.VPC.vpc_azs
-  vpc_subnets_ids        = module.VPC.public_subnets_ids[*]
-  enable_attachment      = true
-  lb_tg_target_id        = module.Backend_EC2.ec2_instance_id
+  source            = "./modules/LB"
+  lb_name           = "my-lb-internal-backend"
+  TG_name           = "my-target-group-internal"
+  lb_owner          = "Macarious"
+  lb_env            = "dev"
+  vpc_id            = module.VPC.vpc_id
+  lb_sg_id          = module.SG.sg_id
+  vpc_azs           = module.VPC.vpc_azs
+  vpc_subnets_ids   = module.VPC.public_subnets_ids[*]
+  enable_attachment = true
+  lb_tg_target_id   = module.Backend_EC2.ec2_instance_id
 }
 
 module "ASG" {
-  source                          = "./modules/ASG"
-  asg_name                        = "my-asg"
-  asg_name_tag_value              = "my-asg-instance"
-  min_size                        = 1
-  max_size                        = 2
-  desired_capacity                = 1
+  source             = "./modules/ASG"
+  asg_name           = "my-asg"
+  asg_name_tag_value = "my-asg-instance"
+  min_size           = 1
+  max_size           = 2
+  desired_capacity   = 1
 
-  asg_subnets_ids                 = module.VPC.public_subnets_ids 
-  enable_lb                       = true
-  lb_target_group_arns            = [module.LB_internet_facing.target_group_arn]
+  asg_subnets_ids      = module.VPC.public_subnets_ids
+  enable_lb            = true
+  lb_target_group_arns = [module.LB_internet_facing.target_group_arn]
 
-  enable_target_tracking_policy   = true
-  target_tracking_metric_type     = "ASGAverageCPUUtilization"
-  target_value_cpu_utilization    = 50.0
+  enable_target_tracking_policy = true
+  target_tracking_metric_type   = "ASGAverageCPUUtilization"
+  target_value_cpu_utilization  = 50.0
 
   # enable_ami_from_instance      = true
   # ami_from_instance_id          = module.Bastion_EC2.ec2_instance_id
@@ -150,16 +152,16 @@ module "ASG" {
 }
 
 module "LB_internet_facing" {
-  source                 = "./modules/LB"
-  lb_name                = "my-alb"
-  TG_name                = "my-target-group"
-  lb_owner               = local.common_tags["Owner"]
-  lb_env                 = local.common_tags["Env"]
-  vpc_id                 = module.VPC.vpc_id
-  lb_sg_id               = module.SG.sg_id
-  vpc_azs                = module.VPC.vpc_azs
-  vpc_subnets_ids        = module.VPC.public_subnets_ids[*]
-  enable_attachment      = false
+  source            = "./modules/LB"
+  lb_name           = "my-alb"
+  TG_name           = "my-target-group"
+  lb_owner          = local.common_tags["Owner"]
+  lb_env            = local.common_tags["Env"]
+  vpc_id            = module.VPC.vpc_id
+  lb_sg_id          = module.SG.sg_id
+  vpc_azs           = module.VPC.vpc_azs
+  vpc_subnets_ids   = module.VPC.public_subnets_ids[*]
+  enable_attachment = false
 }
 
 module "RDS" {
@@ -189,7 +191,7 @@ module "RDS" {
 }
 
 module "R53" {
-  source = "./modules/R53"
+  source        = "./modules/R53"
   domain_name   = "example.com"
   www_record_ip = module.LB_internet_facing.dns_name
 }
