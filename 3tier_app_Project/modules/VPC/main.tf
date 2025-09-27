@@ -5,8 +5,8 @@
 # internet gateway
 # ------------------------------------------- VPC
 resource "aws_vpc" "General_vpc" {
-  cidr_block       = var.vpc_cidr
-  instance_tenancy = "default"
+  cidr_block           = var.vpc_cidr
+  instance_tenancy     = "default"
   enable_dns_support   = var.enable_dns_support
   enable_dns_hostnames = var.enable_dns_hostnames
 
@@ -89,7 +89,7 @@ resource "aws_route_table" "public_rt" {
     gateway_id = aws_internet_gateway.gw.id
   }
 
-  
+
 
   tags = {
     Name        = "${var.vpc_name}-public-rt"

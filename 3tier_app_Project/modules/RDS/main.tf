@@ -37,7 +37,7 @@ resource "aws_db_instance" "General_RDS_instance" {
   db_subnet_group_name   = aws_db_subnet_group.RDS_subnet_group.name
   vpc_security_group_ids = var.vpc_security_group_ids
 
-  parameter_group_name = aws_db_parameter_group.RDS_parameter_group.name
+  parameter_group_name    = aws_db_parameter_group.RDS_parameter_group.name
   publicly_accessible     = var.publicly_accessible
   deletion_protection     = var.deletion_protection
   multi_az                = var.multi_az

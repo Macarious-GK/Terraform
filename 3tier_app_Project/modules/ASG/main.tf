@@ -1,28 +1,28 @@
 # when we create ASG we go through these steps:
 # 1. launch template or launch configuration
-    # 1. ami id
-    # 2. instance type
-    # 3. key pair
-    # 4. security group
-    # 5. user data
+# 1. ami id
+# 2. instance type
+# 3. key pair
+# 4. security group
+# 5. user data
 # 2. Launch options
-    # 1.Network
-        # 1.VPC
-        # 2.subnets
-        # 3.AZs
+# 1.Network
+# 1.VPC
+# 2.subnets
+# 3.AZs
 # 3. Configure group size and scaling 
-    # 1. min size
-    # 2. max size
-    # 3. desired capacity
-    # 4. Instance maintenance policy
-    # 5. Scaling policies
+# 1. min size
+# 2. max size
+# 3. desired capacity
+# 4. Instance maintenance policy
+# 5. Scaling policies
 
 
 ## For scaling policies we can use:
 # 1. Target tracking scaling
 # 2. Step scaling (for more controlled scaling)
 
-locals{
+locals {
   user_data_content = var.launch_template_object.use_user_data ? templatefile("${path.root}/scripts/${var.launch_template_object.user_data_file_name}.tpl", var.launch_template_object.user_data_vars) : file("${path.root}/scripts/${var.launch_template_object.user_data_file_name}")
 
 }
@@ -32,7 +32,7 @@ locals {
 }
 
 resource "aws_ami_from_instance" "custom" {
-  count          = var.enable_ami_from_instance ? 1 : 0
+  count              = var.enable_ami_from_instance ? 1 : 0
   name               = "macarious-custom-ami-for-alb"
   source_instance_id = var.ami_from_instance_id
 }
@@ -45,21 +45,21 @@ resource "aws_launch_template" "General_Purpose_LT_for_ASG" {
     associate_public_ip_address = var.launch_template_object.associate_public_ip
     security_groups             = var.launch_template_object.security_group_ids
   }
-  key_name = var.launch_template_object.key_name
+  key_name  = var.launch_template_object.key_name
   user_data = local.user_data_base64
 }
 
 resource "aws_autoscaling_group" "General_Purpose_ASG" {
-  name                      = var.asg_name
-  max_size                  = var.max_size
-  min_size                  = var.min_size
-  desired_capacity          = var.desired_capacity
+  name             = var.asg_name
+  max_size         = var.max_size
+  min_size         = var.min_size
+  desired_capacity = var.desired_capacity
 
-  health_check_type = var.enable_lb ? "ELB" : "EC2"
+  health_check_type         = var.enable_lb ? "ELB" : "EC2"
   health_check_grace_period = 300
 
-  force_delete              = true
-  vpc_zone_identifier       = var.asg_subnets_ids
+  force_delete        = true
+  vpc_zone_identifier = var.asg_subnets_ids
 
   launch_template {
     id      = aws_launch_template.General_Purpose_LT_for_ASG.id
@@ -73,11 +73,11 @@ resource "aws_autoscaling_group" "General_Purpose_ASG" {
     value               = var.asg_name_tag_value
     propagate_at_launch = true
   }
-} 
+}
 
 
 resource "aws_autoscaling_policy" "cpu_target_tracking" {
-  count = var.enable_target_tracking_policy ? 1 : 0
+  count                  = var.enable_target_tracking_policy ? 1 : 0
   name                   = "${aws_autoscaling_group.General_Purpose_ASG.name}-cpu-policy"
   policy_type            = "TargetTrackingScaling"
   autoscaling_group_name = aws_autoscaling_group.General_Purpose_ASG.name
@@ -86,7 +86,7 @@ resource "aws_autoscaling_policy" "cpu_target_tracking" {
     predefined_metric_specification {
       predefined_metric_type = var.target_tracking_metric_type
     }
-    target_value = var.target_value_cpu_utilization 
+    target_value = var.target_value_cpu_utilization
   }
 }
 

@@ -18,7 +18,7 @@ variable "azs" {
     condition     = (length(var.azs) >= 1 && length(var.azs) <= 3) && alltrue([for az in var.azs : can(regex("^[a-z]{2}-", az))])
     error_message = "You must specify between 1, 2 or 3 availability zones"
   }
-} 
+}
 
 variable "public_subnets" {
   description = "A list of public subnet CIDR blocks"
@@ -35,7 +35,7 @@ variable "private_subnets" {
   type        = list(string)
   default     = []
   validation {
-    condition     = length(var.private_subnets) == 0 || length(var.private_subnets) == length(var.azs) || length(var.private_subnets) == length(var.azs)*2
+    condition     = length(var.private_subnets) == 0 || length(var.private_subnets) == length(var.azs) || length(var.private_subnets) == length(var.azs) * 2
     error_message = "You can either leave private_subnets empty or specify exactly one or two subnet CIDR blocks per availability zone"
   }
 }
@@ -53,11 +53,11 @@ variable "enable_dns_support" {
 }
 
 variable "nat_gateway" {
-  description =  "NAT Gateway mode: none | single | perAZ"
+  description = "NAT Gateway mode: none | single | perAZ"
   type        = string
   default     = "single"
   validation {
-    condition     = contains(["none", "single", "perAZ"], var.nat_gateway) 
+    condition     = contains(["none", "single", "perAZ"], var.nat_gateway)
     error_message = "Invalid NAT gateway type. Valid options are 'none', 'single' or 'perAZ'."
   }
 }
@@ -65,7 +65,7 @@ variable "nat_gateway" {
 variable "tags" {
   description = "A map of tags to assign to the VPC and its resources"
   type        = map(string)
-  default     = {
+  default = {
     Name        = "default-vpc"
     Owner       = "Macarious"
     Environment = "dev"
