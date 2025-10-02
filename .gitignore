@@ -2,4 +2,4 @@
 /3tier_app_Project/modules/KEY/mykeys/
 # /3tier_app_Project/.terraform.lock.hcl
 **/.terraform/*
-/3tier_app_Project/terraform.prod.tfvars
+/3tier_app_Project/terraform.prod.auto.tfvars

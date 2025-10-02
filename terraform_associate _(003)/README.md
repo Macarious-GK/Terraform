@@ -345,11 +345,22 @@ output "instance_PV_ip" {
   sensitive   = true
 }
 
-output "instance_PUB_ip" {
-  value       = aws_instance.web.public_ip
-  description = "Public IP of the EC2 instance"
+output "<LABEL>" {
+  value       = <EXPRESSION>
+  description = "<STRING>"
+  sensitive   = <true|false>
+  ephemeral   = <true|false>
+  depends_on  = [<REFERENCE>]
+
+  precondition {
+    condition     = <EXPRESSION>
+    error_message = "<STRING>"
+  }
 }
+
 ```
+- we can use the `ephemeral` option, when passing sensitive data to child module *to prevent storing the value state files*
+
 - **`Output flags`**
   - The ***-raw*** option only supports strings, numbers, and boolean values.
   - Use the ***-json*** option for output values that have complex types. 
