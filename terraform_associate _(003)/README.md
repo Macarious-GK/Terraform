@@ -326,10 +326,11 @@ resource "aws_instance" "example" {
 }
 ```
 - Using Variables (When no default is set) ***in order***:
+  5. **CLI flags** `Priority 1`: Provide the variables interactively in CLI by `-var`
+  4. **CLI flags** `Priority 2`: Provide the variables interactively in CLI by `-var-file`
+  3. Use **.auto.tfvars files** `*Priority 2` then in the cli by ` *.auto.tfvars` 
+  2. Use **terraform.tfvars files** `Priority 3`then in the cli by ` terraform.tfvars` 
   1. Export the environment values like `export TF_VAR_filename="somevalue"`
-  2. Use **variable definition files** `terraform.tfvars`then in the cli by `-var-file terraform.tfvars` 
-  3. Use **variable definition files** `*.auto.tfvars` then in the cli by `-var-file *.auto.tfvars` 
-  4. **Command line flags** `Highest Priority`: Provide the variables interactively in CLI by `-var` in `terraform apply`
 
 --- 
 

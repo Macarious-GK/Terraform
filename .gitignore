@@ -3,3 +3,7 @@
 # /3tier_app_Project/.terraform.lock.hcl
 **/.terraform/*
 /3tier_app_Project/terraform.prod.auto.tfvars
+/Multi-Environment_Prometheus_Deploy_Dynamic_State_Separation/.terraform/
+/Multi-Environment_Prometheus_Deploy_Dynamic_State_Separation/terraform.tfstate
+/Multi-Environment_Prometheus_Deploy_Dynamic_State_Separation/terraform.tfstate.backup
+/Multi-Environment_Prometheus_Deploy_Dynamic_State_Separation/creds/
