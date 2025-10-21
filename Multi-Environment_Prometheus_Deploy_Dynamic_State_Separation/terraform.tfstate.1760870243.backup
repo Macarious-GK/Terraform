@@ -1,0 +1,52 @@
+{
+  "version": 4,
+  "terraform_version": "1.13.0",
+  "serial": 30,
+  "lineage": "9c4df847-db6d-2f88-0016-b6ac306d4e90",
+  "outputs": {},
+  "resources": [
+    {
+      "mode": "managed",
+      "type": "kubernetes_namespace",
+      "name": "name",
+      "provider": "provider[\"registry.terraform.io/hashicorp/kubernetes\"]",
+      "instances": [
+        {
+          "schema_version": 0,
+          "attributes": {
+            "id": "default",
+            "metadata": [
+              {
+                "annotations": {},
+                "generate_name": "",
+                "generation": 0,
+                "labels": {},
+                "name": "default",
+                "resource_version": "35",
+                "uid": "e8d42eca-a29d-4601-a1fe-35dd52823a56"
+              }
+            ],
+            "timeouts": null,
+            "wait_for_default_service_account": null
+          },
+          "sensitive_attributes": [],
+          "identity_schema_version": 1,
+          "identity": {
+            "api_version": "v1",
+            "kind": "Namespace",
+            "name": "default"
+          },
+          "private": "eyJlMmJmYjczMC1lY2FhLTExZTYtOGY4OC0zNDM2M2JjN2M0YzAiOnsiZGVsZXRlIjozMDAwMDAwMDAwMDB9LCJzY2hlbWFfdmVyc2lvbiI6IjAifQ=="
+        }
+      ]
+    }
+  ],
+  "check_results": [
+    {
+      "object_kind": "var",
+      "config_addr": "module.prometheus.var.service",
+      "status": "unknown",
+      "objects": null
+    }
+  ]
+}
