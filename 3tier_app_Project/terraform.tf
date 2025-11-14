@@ -16,14 +16,18 @@ terraform {
     }
   }
   required_version = ">= 1.10.0, < 2.0.0"
-
-  backend "s3" {
-    bucket       = "macarious-terraform-state-bucket"
-    encrypt      = true
-    key          = "terraform-2/terraform.tfstate"
-    region       = "us-east-1"
-    use_lockfile = true
+  backend "local" {
+    path = "terraform.tfstate"
+    
   }
+
+  # backend "s3" {
+  #   bucket       = "macarious-terraform-state-bucket"
+  #   encrypt      = true
+  #   key          = "terraform-2/terraform.tfstate"
+  #   region       = "us-east-1"
+  #   use_lockfile = true
+  # }
 }
 
 

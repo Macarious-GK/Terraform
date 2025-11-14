@@ -12,7 +12,7 @@ module "VPC" {
   cidr                 = "10.0.0.0/16"
   azs                  = ["us-east-1a", "us-east-1b"]
   public_subnets       = ["10.0.5.0/24", "10.0.6.0/24"]
-  private_subnets      = ["10.0.3.0/24", "10.0.4.0/24", "10.0.1.0/24", "10.0.2.0/24"]
+  private_subnets      = ["10.0.3.0/24", "10.0.4.0/24"]
   nat_gateway          = "none"
   enable_dns_hostnames = true
   enable_dns_support   = true
@@ -22,86 +22,86 @@ module "VPC" {
   }
 }
 
-# module "SG" {
-#   source         = "./modules/SG"
-#   sg_description = "This security group is for my rds instance"
-#   sg_name        = "my-sg"
-#   sg_owner       = local.common_tags["Owner"]
-#   sg_env         = local.common_tags["Env"]
-#   vpc_id         = module.VPC.vpc_id
-#   vpc_name       = module.VPC.vpc_arn
-#   sg_ingress_rules = {
-#     http = {
-#       from_port   = 80
-#       to_port     = 80
-#       protocol    = "tcp"
-#       cidr_blocks = "0.0.0.0/0"
-#       description = "Allow HTTP"
-#     },
-#     https = {
-#       from_port   = 443
-#       to_port     = 443
-#       protocol    = "tcp"
-#       cidr_blocks = "0.0.0.0/0"
-#       description = "Allow HTTPS"
-#     },
-#     mysql = {
-#       from_port   = 3306
-#       to_port     = 3306
-#       protocol    = "tcp"
-#       cidr_blocks = "10.0.3.0/24"
-#       description = "Allow MySQL from private subnets 10.0.3.0/24 only"
-#     },
-#     mysql_2 = {
-#       from_port   = 3306
-#       to_port     = 3306
-#       protocol    = "tcp"
-#       cidr_blocks = "10.0.4.0/24"
-#       description = "Allow MySQL from private subnets 10.0.4.0/24 only"
-#     },
-#     postgres = {
-#       from_port   = 5432
-#       to_port     = 5432
-#       protocol    = "tcp"
-#       cidr_blocks = "10.0.3.0/24"
-#       description = "Allow PostgreSQL from private subnets 10.0.3.0/24 only"
-#     },
-#     postgres_2 = {
-#       from_port   = 5432
-#       to_port     = 5432
-#       protocol    = "tcp"
-#       cidr_blocks = "10.0.4.0/24"
-#       description = "Allow PostgreSQL from private subnets 10.0.4.0/24 only"
-#     },
-#     ssh = {
-#       from_port   = 22
-#       to_port     = 22
-#       protocol    = "tcp"
-#       cidr_blocks = "0.0.0.0/0"
-#       description = "Allow SSH"
-#     }
-#   }
-# }
+module "SG" {
+  source         = "./modules/SG"
+  sg_description = "This security group is for my rds instance"
+  sg_name        = "my-sg"
+  sg_owner       = local.common_tags["Owner"]
+  sg_env         = local.common_tags["Env"]
+  vpc_id         = module.VPC.vpc_id
+  vpc_name       = module.VPC.vpc_arn
+  sg_ingress_rules = {
+    http = {
+      from_port   = 80
+      to_port     = 80
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+      description = "Allow HTTP"
+    },
+    https = {
+      from_port   = 443
+      to_port     = 443
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+      description = "Allow HTTPS"
+    },
+    mysql = {
+      from_port   = 3306
+      to_port     = 3306
+      protocol    = "tcp"
+      cidr_blocks = "10.0.3.0/24"
+      description = "Allow MySQL from private subnets 10.0.3.0/24 only"
+    },
+    mysql_2 = {
+      from_port   = 3306
+      to_port     = 3306
+      protocol    = "tcp"
+      cidr_blocks = "10.0.4.0/24"
+      description = "Allow MySQL from private subnets 10.0.4.0/24 only"
+    },
+    postgres = {
+      from_port   = 5432
+      to_port     = 5432
+      protocol    = "tcp"
+      cidr_blocks = "10.0.3.0/24"
+      description = "Allow PostgreSQL from private subnets 10.0.3.0/24 only"
+    },
+    postgres_2 = {
+      from_port   = 5432
+      to_port     = 5432
+      protocol    = "tcp"
+      cidr_blocks = "10.0.4.0/24"
+      description = "Allow PostgreSQL from private subnets 10.0.4.0/24 only"
+    },
+    ssh = {
+      from_port   = 22
+      to_port     = 22
+      protocol    = "tcp"
+      cidr_blocks = "0.0.0.0/0"
+      description = "Allow SSH"
+    }
+  }
+}
 
-# module "KEY_Bastion" {
-#   source        = "./modules/KEY"
-#   key_name      = "Bastion-my-key-pair"
-#   key_algorithm = "RSA"
-# }
+module "KEY_Bastion" {
+  source        = "./modules/KEY"
+  key_name      = "Bastion-my-key-pair"
+  key_algorithm = "RSA"
+}
 
-# module "Backend_EC2" {
-#   source                      = "./modules/EC2"
-#   instance_name               = "backend-my-ec2-instance"
-#   instance_owner              = "Macarious"
-#   instance_env                = "development"
-#   ami_id                      = "ami-0360c520857e3138f"
-#   instance_type               = "t2.micro"
-#   associate_public_ip_address = true
-#   sg_ids                      = [module.SG.sg_id]
-#   ec2_aws_key_pair            = module.KEY_Bastion.key_name
-#   desired_vpc_subnet_id       = module.VPC.public_subnets_ids[1]
-#   user_data                   = file("${path.root}/scripts/user_data_backend.sh")
-# }
+module "Backend_EC2" {
+  source                      = "./modules/EC2"
+  instance_name               = "backend-my-ec2-instance"
+  instance_owner              = "Macarious"
+  instance_env                = "development"
+  ami_id                      = "ami-0360c520857e3138f"
+  instance_type               = "t3.micro"
+  associate_public_ip_address = true
+  sg_ids                      = [module.SG.sg_id]
+  ec2_aws_key_pair            = module.KEY_Bastion.key_name
+  desired_vpc_subnet_id       = module.VPC.public_subnets_ids[1]
+  user_data                   = file("${path.root}/scripts/user_data_backend.sh")
+}
 
 # module "LB_internal_backend" {
 #   source            = "./modules/LB"

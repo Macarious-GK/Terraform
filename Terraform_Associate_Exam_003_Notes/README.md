@@ -60,6 +60,7 @@
         - [Locals](#locals)
         - [Dynamic](#dynamic)
 - [Commands](#commands)
+- [VIP_NOTES](#vip_notes)
 - [Exam List missingparts](#exam-list-missingparts)
 
 ## Introduction
@@ -164,6 +165,7 @@ module "app" {
 - *regular constraint*: anything newer that exists.
   - => 5.43 → allows `any newer version `
 - *pessimistic constraint*: update minor/patch only.
+  - Allows only the right-most version component to increment.
   - ~> 5.34 → allows `>= 5.34.0 and < 5.35.0`.
   - ~> 5.0 → allows `>= 5.0.0 and < 6.0.0`.
 
@@ -604,6 +606,8 @@ out = concat(["a", "b"], ["c", "d"])          # return ["a", "b", "c", "d"]
 out = flatten([["a", "b"], ["c", "d"]])       # return ["a", "b", "c", "d"]
 out = join(".", ["a", "b", "c"])              # return "a.b.c"
 ```
+
+```text
 Functions (dynamic)
   1   length()
   1   merge()
@@ -628,6 +632,7 @@ Functions (dynamic)
   _   tolist()
   _   tomap()
   _   tostring()
+```
 
 ### Terraform File Handling Functions
 > #### `file(path)`
@@ -780,6 +785,103 @@ terraform import <resource> <id>
 terraform validate            # Validate the current configuration
 ```
 
+# VIP_NOTES
+
+## Explain the Main process of Plan/Apply command
+- Both command do same things but the apply ask you to apply the created plan or not.
+
+- `Plan`/`Apply`:
+  - Purpose **->** Create a plan of what terraform will do, apply it when approved
+- This command do this:
+  - loads the current state
+  - query the provider APIs for all resources in the state to refresh their current attributes.
+  - Compare it with the config file
+  - generate a plan to create/update/destroy resources
+
+- ***Planning Modes***:
+  - Normal Mode -> `refresh` + `compare`
+  - Refresh-only `--refresh-only`
+  - Destroy `-destroy`
+
+- ***Planning Options***:
+  - `-refresh=false` -> *disable refresh*
+  - `-replace=ADDRESS` -> *force recreate*
+  - `-target=ADDRESS` -> *target specific resources*
+  - `-var 'NAME=VALUE'`
+  - `-var-file=FILENAME`
+
+
+## Explain the Init command & migration/reconfigure options
+- Init command is responsible for preparing the terraform project:
+  - Init the backend configuration
+  - Install plugins 
+  - Install Modules
+  - prepare the .terraform folder structure
+
+- `-migrate-state` option is for migration between state backends only, and is not applicable when using HCP Terraform.
+
+- `-reconfigure` 
+  - does not migrate state; it just reinitializes the backend.
+  - It’s commonly used for switching credentials, workspace names, or pointing to a different backend.
+
+- If we want to migrate our state file:
+  - local -> remote (migrate) 
+  - remote -> local (migrate)
+  - local,remote -> HCP (use init only)
+  - HCP -> Local,remote ***`NO migrate, but manually export/import the state, reconfigure only point to other backend`***
+
+## Best Practice to refactor and migrate
+- Long Terraform applies?
+  - Large monolithic configurations take time and can cause unintended changes.
+- Different resource lifecycles?
+  - Separate frequently updated resources (e.g., compute) from long-lived ones (e.g., networking).
+- Team ownership
+  - Split configurations so teams only manage resources they are responsible for.
+
+
+1. Stateless resources can often be recreated.
+2. Stateful resources require careful migration using removed/import blocks or terraform state mv.
+3. Always backup your state before refactoring.
+
+- Use ***`import, moved, removed`*** blocks
+
+```hcl
+import {
+  to = resource.type.address
+  id = "cloud-provider-id"      # `id` is mutually exclusive with `identity` 
+  identity = {                  # `identity` is mutually exclusive with `id`
+    <ATTRIBUTE> = <VALUE>
+  }   
+  for_each = {                  # `for_each` accepts a map or a set of strings 
+    <KEY> = <VALUE>
+  }
+  for_each = [                  # `for_each` accepts a map or a set of strings 
+    "<VALUE>", 
+    "<VALUE>"
+  ]
+  provider = provider-name.alias
+}
+
+moved {
+    from = <old address for the resource>
+    to = <new address for the resource>
+}
+
+removed {
+  from = "<resource.address>"
+  lifecycle {
+    destroy = < true || false >
+  }
+  connection {
+    <connection-settings>
+  }
+  provisioner "<TYPE>" {
+    when = destroy
+    <provisioner-type-arguments>
+  }
+}
+
+```
 
 # Exam List missingparts
 
@@ -814,7 +916,10 @@ terraform validate            # Validate the current configuration
 - `Flags`
 ```bash
 terraform init -upgrade -reconfigure      # Force Upgrades providers & modules Re-initializes the backend and ignores existing settings
-terraform init -migrate-state             # it migrate state to new backend config
+terraform init -migrate-state             # it migrate state to new backend 
+
+terraform init -backend-config="prod.hcl"     # tell terraform to use backend-config from this path
+
 ```
 #### `validate`
 - a local, fast syntax and logic checker for your Terraform code.
@@ -1046,6 +1151,8 @@ check "health_check" {
   - key & value by **:** or **=**, element & other by **,** or linespace
   - ***for_each*** -> ***each.key each.value***
   - `dynamic maps` { for key, value in var.my_map : key => upper(value) }
+    - { for k, v in var.my_map : k => v if startswith(k, "env") }
+
   - access:
     - map.key
     - map[key]
@@ -1192,7 +1299,12 @@ terraform plan -generate-config-out=generated.tf
 
 - HCP Terraform organizes infrastructure into ***`projects`*** that contain workspaces and Stacks.:
   - `Workspaces` are ideal for managing a self-contained infrastructure of one Terraform root module.
-  - `Stacks` are ideal for managing multiple infrastructure modules and repeating that infrastructure at scale.
+  -  `Stacks` are ideal for managing multiple infrastructure modules and repeating that infrastructure at scale.
+    - ***Components***: contain multiple modules that share a lifecycle together in a stack
+    - ***Deployments***:  where and how many times to deploy the infrastructure in the Stack. 
+    - ***Deployment group orchestration rules***: 
+
+
 
 ### HCP Workspaces
 - A workspace is a group of infrastructure resources managed by Terraform.
@@ -1355,3 +1467,45 @@ https://developer.hashicorp.com/terraform/language/modules/develop/refactoring
 - provisioners
 - flatten & setproduct & chomp
 - variable overrite order 
+
+
+
+
+
+
+
+
+
+
+
+
+# ToDay
+- HCP
+- Bucket in GCP
+- Simple Project for VPC in GCP
+  - Routes
+  - Firewall rules
+  - subnets & zones
+
+
+# Project 
+- Use For for_each count
+- Use Try
+- Use Loops 
+- Use Lookup
+
+- Use Complex Data Type
+- Use Dynamic Locals
+- Use Dynamic Tagging
+
+- Use Lifecycle
+- Use 4 Validation 
+- Use provisioners
+
+- Use data sources
+- Use dependencies
+- Use Modules
+- Use terraform_remote_state
+
+- Blue Green 
+- Use state refactoring
